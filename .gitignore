@@ -1,0 +1,7 @@
+# python stuff 
+__pycache__/
+effect_py/__pycache__/
+
+# Sphinx documentation build files
+docs/source/_build/
+docs/build/
