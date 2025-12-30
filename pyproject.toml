@@ -1,16 +1,14 @@
-[project]
+[tool.poetry]
 name = "fn-effect-py"
-version = "0.1.0"
+version = "0.0.1"
 description = ""
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "pydantic>=2.12.4,<3.0.0",
-    "tqdm>=4.67.1,<5.0.0"
-]
+packages = [{ include = "effect_py" }]
 
-[tool.poetry]
-packages = [{include = "effect_py"}]
+[tool.poetry.dependencies]
+python = ">=3.13"
+pydantic = ">=2.12.4,<3.0.0"
+tqdm = ">=4.67.1,<5.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
