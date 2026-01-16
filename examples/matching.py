@@ -1,4 +1,4 @@
-from effect_py.either import Either
+from result_py.either import Either
 
 
 # fmt: off

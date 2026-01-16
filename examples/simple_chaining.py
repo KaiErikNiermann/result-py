@@ -1,4 +1,4 @@
-from effect_py.either import Either
+from result_py.either import Either
 from typing import Callable
 
 increment: Callable[[int], int] = lambda x: x + 1

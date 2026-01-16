@@ -1,15 +1,52 @@
 [tool.poetry]
-name = "fn-effect-py"
-version = "0.0.1"
-description = ""
+name = "fn-result-py"
+version = "0.1.0"
+description = "A functional programming library for Python that brings type-safe error handling through the Result monad pattern"
 readme = "README.md"
-packages = [{ include = "effect_py" }]
+packages = [{ include = "result_py" }]
+license = "MIT"
+authors = ["result-py contributors"]
+keywords = ["functional", "result", "monad", "error-handling", "type-safe", "railway-oriented-programming"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+repository = "https://github.com/result-py/result-py"
 
 [tool.poetry.dependencies]
-python = ">=3.13"
+python = ">=3.14"
 pydantic = ">=2.12.4,<3.0.0"
 tqdm = ">=4.67.1,<5.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0.0"
+pytest-cov = ">=4.0.0"
+pytest-asyncio = ">=0.23.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["result_py"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@overload",
+]

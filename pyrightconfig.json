@@ -1,7 +1,8 @@
 {
     "typeCheckingMode": "strict",
+    "pythonVersion": "3.14",
     "useLibraryCodeForTypes": true,
     "enableExperimentalFeatures": true,
     "enableReachabilityAnalysis": true,
-    "reportMissingTypeStubs": "information",
+    "reportMissingTypeStubs": "information"
 }

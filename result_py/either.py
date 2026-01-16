@@ -22,7 +22,7 @@ import tqdm
 from pydantic import BaseModel
 import warnings
 
-from effect_py.contracts import HasAdd, HasRootMapping, Identity
+from result_py.contracts import HasAdd, HasRootMapping, Identity
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -31,8 +31,8 @@ def ident[T](t: T) -> Identity[T]:
     return t
 
 
-L = TypeVar("L", covariant=True)
-R = TypeVar("R", covariant=True)
+L = TypeVar("L")
+R = TypeVar("R")
 
 
 class ExternalWrapWarning(Warning):
@@ -43,14 +43,24 @@ class WriteJsonWarning(Warning):
     """Warning for issues encountered while writing JSON files."""
 
 
-@dataclass
+@dataclass(frozen=True)
 class Either(Generic[L, R]):
+    """
+    A type-safe Either monad for functional error handling.
+    
+    Either represents a value that can be one of two types:
+    - Left (L): Typically used to represent an error or failure case
+    - Right (R): Typically used to represent a success case
+    
+    This is a frozen (immutable) dataclass for safety.
+    """
 
     _left: Optional[L] = None
     _right: Optional[R] = None
 
     @staticmethod
     def left[L2](l: L2) -> Either[L2, Any]:
+        """Create a Left Either containing an error/failure value."""
         return Either(_left=l)
 
     # Alias for left
@@ -58,6 +68,7 @@ class Either(Generic[L, R]):
 
     @staticmethod
     def right[R2](r: R2) -> Either[Any, R2]:
+        """Create a Right Either containing a success value."""
         return Either(_right=r)
 
     @staticmethod
@@ -80,10 +91,22 @@ class Either(Generic[L, R]):
     # Alias for right
     success = right
 
-    def is_right(self, value: Optional[R]) -> TypeIs[R]:
+    @property
+    def is_right(self) -> bool:
+        """Returns True if this Either contains a Right value."""
+        return self._right is not None
+
+    @property
+    def is_left(self) -> bool:
+        """Returns True if this Either contains a Left value."""
+        return self._left is not None
+    
+    def _has_right(self, value: Optional[R]) -> TypeIs[R]:
+        """Type guard helper for narrowing the right value."""
         return value is not None
 
-    def is_left(self, value: Optional[L]) -> TypeIs[L]:
+    def _has_left(self, value: Optional[L]) -> TypeIs[L]:
+        """Type guard helper for narrowing the left value."""
         return value is not None
 
     def _apply_right[T1, T2](
@@ -107,9 +130,65 @@ class Either(Generic[L, R]):
             An Either containing the result of applying the function to the right value,
             or the left value if present.
         """
-        if self.is_right(self._right):
+        if self._has_right(self._right):
             return Either.right(f(self._right))
         return Either.left(cast(L, self._left))
+
+    def map_left[L2](
+        self: Either[L, R],
+        f: Callable[[L], L2],
+    ) -> Either[L2, R]:
+        """
+        Applies a function to the left value of the Either if it exists.
+
+        Parameters
+        ----------
+        f : `Callable[[L], L2]`
+            A function that takes the left value and returns a new left value.
+
+        Returns
+        -------
+        `Either[L2, R]`
+            An Either containing the transformed left value, or the original right value.
+
+        Example
+        -------
+        >>> e = Either.left("error")
+        >>> e.map_left(lambda s: f"Error: {s}")
+        >>> Either(_left="Error: error", _right=None)
+        """
+        if self._has_left(self._left):
+            return Either.left(f(self._left))
+        return Either.right(cast(R, self._right))
+
+    def or_else[L2](
+        self: Either[L, R],
+        f: Callable[[L], Either[L2, R]],
+    ) -> Either[L2, R]:
+        """
+        Applies a function to the left value to attempt recovery.
+
+        Parameters
+        ----------
+        f : `Callable[[L], Either[L2, R]]`
+            A function that takes the left value and returns a new Either,
+            potentially recovering from the error.
+
+        Returns
+        -------
+        `Either[L2, R]`
+            The result of the recovery function if Left, otherwise the original Right.
+
+        Example
+        -------
+        >>> def recover(err: str) -> Either[int, str]:
+        ...     return Either.right("recovered") if err == "recoverable" else Either.left(500)
+        >>> Either.left("recoverable").or_else(recover)
+        >>> Either(_left=None, _right="recovered")
+        """
+        if self._has_left(self._left):
+            return f(self._left)
+        return Either.right(cast(R, self._right))
 
     @overload
     def pipe[*Ls, *Es, T](
@@ -122,11 +201,11 @@ class Either(Generic[L, R]):
     ) -> Either[Union[*Ls], T]: ...
 
     def pipe(self, f: Callable[[R], Any]) -> Either[Any, Any]:
-        if self.is_right(self._right):
-            if isinstance(out := f(self._right), Either):
+        if self._has_right(self._right):
+            out = f(self._right)
+            if isinstance(out, Either):
                 return out  # type: ignore
-
-            return Either.right(f(self._right))
+            return Either.right(out)
         return Either.left(cast(L, self._left))
 
     def to_json(self, **kwargs: Any) -> Either[L, str]:
@@ -135,7 +214,7 @@ class Either(Generic[L, R]):
         If the Either is left, it returns the left value as a JSON string.
         If the Either is right, it returns the right value as a JSON string.
         """
-        if self.is_right(self._right):
+        if self._has_right(self._right):
             return Either.right(json.dumps(self._right, **kwargs))
         return Either.left(cast(L, self._left))
 
@@ -143,7 +222,7 @@ class Either(Generic[L, R]):
         self: Either[L, tuple[*T1]],
         f: Callable[[*T1], T2],
     ) -> Either[L, T2]:
-        if self.is_right(self._right):
+        if self._has_right(self._right):
             return Either.right(f(*self._right))
         return Either.left(cast(L, self._left))
 
@@ -175,12 +254,16 @@ class Either(Generic[L, R]):
         self: Either[L, Iterable[Any]],
         f: Callable[..., bool],
     ) -> Either[L, tuple[Iterable[Any], Iterable[Any]]]:
-        return self._apply_right(
-            lambda it: (
-                [item for item in it if self._call(f, item)],
-                [item for item in it if not self._call(f, item)],
-            )
-        )
+        def _partition(it: Iterable[Any]) -> tuple[list[Any], list[Any]]:
+            truthy: list[Any] = []
+            falsy: list[Any] = []
+            for item in it:
+                if self._call(f, item):
+                    truthy.append(item)
+                else:
+                    falsy.append(item)
+            return (truthy, falsy)
+        return self._apply_right(_partition)
 
     def n_partition[*T1, *T2](
         self: Either[L, Iterable[Union[*T1, *T2]]],
@@ -206,15 +289,17 @@ class Either(Generic[L, R]):
             If the Either is left, it returns the left value.
         """
 
-        def not_t1(item: Union[*T1, *T2]) -> TypeIs[Union[*T1]]:
-            return not f(item)
+        def _partition(it: Iterable[Union[*T1, *T2]]) -> tuple[list[Union[*T1]], list[Union[*T2]]]:
+            first: list[Union[*T1]] = []
+            second: list[Union[*T2]] = []
+            for item in it:
+                if f(item):
+                    second.append(item)  # type: ignore
+                else:
+                    first.append(item)  # type: ignore
+            return (first, second)
 
-        return self._apply_right(
-            lambda it: (
-                [item for item in it if not_t1(item)],
-                [item for item in it if f(item)],
-            )
-        )
+        return self._apply_right(_partition)
 
     def two_partition[T1, T2](
         self: Either[L, Iterable[T1 | T2]],
@@ -240,15 +325,17 @@ class Either(Generic[L, R]):
             If the Either is left, it returns the left value.
         """
 
-        def not_t1(item: T1 | T2) -> TypeIs[T2]:
-            return not f(item)
+        def _partition(it: Iterable[T1 | T2]) -> tuple[list[T1], list[T2]]:
+            t1_items: list[T1] = []
+            t2_items: list[T2] = []
+            for item in it:
+                if f(item):
+                    t1_items.append(item)  # type: ignore
+                else:
+                    t2_items.append(item)  # type: ignore
+            return (t1_items, t2_items)
 
-        return self._apply_right(
-            lambda it: (
-                [item for item in it if f(item)],
-                [item for item in it if not_t1(item)],
-            )
-        )
+        return self._apply_right(_partition)
 
     def to_root_items[T](
         self: Either[L, HasRootMapping[T]],
@@ -503,7 +590,6 @@ class Either(Generic[L, R]):
         self: Either[L, Iterable[T1]],
         f: Callable[[T2, T1], T2],
         initial: T2,
-        add: Callable[[T2, T2], T2] = operator.add,
         track: bool = False,
         **tqdm_kwargs: dict[str, Any],
     ) -> Either[L, T2]:
@@ -536,7 +622,7 @@ class Either(Generic[L, R]):
         """
         return self._apply_right(
             lambda it: reduce(
-                lambda acc, x: add(acc, f(acc, x)),
+                f,
                 self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs),
                 initial,
             )
@@ -574,7 +660,7 @@ class Either(Generic[L, R]):
             An Either containing a single iterable with all items from the sub-iterables,
             or the left value if present.
         """
-        if self.is_right(self._right):
+        if self._has_right(self._right):
             return Either.right((item for sublist in self._right for item in sublist))
         return Either.left(cast(L, self._left))
 
@@ -615,13 +701,11 @@ class Either(Generic[L, R]):
         >>> e.n_filter_map(lambda x, y: x + y if (x + y) > 5 else None)
         >>> Either(_left=None, _right=[7, 11])
         """
-        return self._apply_right(
-            lambda it: [
-                _item
-                for item in (self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs))
-                if (_item := f(*item)) is not None
-            ]
-        )
+        def _gen(it: Iterable[tuple[*T1]]) -> Iterable[T2]:
+            for item in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs):
+                if (_item := f(*item)) is not None:
+                    yield _item
+        return self._apply_right(_gen)
 
     def n_map[*T1, T2](
         self: Either[L, Iterable[tuple[*T1]]],
@@ -655,17 +739,15 @@ class Either(Generic[L, R]):
         >>> e.n_map(lambda x, y: x + y)
         >>> Either(_left=None, _right=[3, 7])
         """
-        return self._apply_right(
-            lambda it: [
-                f(*item)
-                for item in (self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs))
-            ]
-        )
+        def _gen(it: Iterable[tuple[*T1]]) -> Iterable[T2]:
+            for item in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs):
+                yield f(*item)
+        return self._apply_right(_gen)
 
     def dict_pipe(
         self: Either[L, Mapping[str, T_co]], key: str, f: Callable[[T_co], Any]
     ) -> Either[L, Mapping[str, T_co]]:
-        if self.is_right(self._right) and key in self._right:
+        if self._has_right(self._right) and key in self._right:
             f(self._right[key])
             return Either.right(self._right)
         return Either.left(cast(L, self._left))
@@ -690,15 +772,71 @@ class Either(Generic[L, R]):
         >>> e.ctx_pipe(lambda x: logger.info(f"Value: {x}"))
         >>> Either(_left="Error", _right=5)
         """
-        if self.is_right(self._right):
+        if self._has_right(self._right):
             f(self._right)
             return Either.right(self._right)
         return Either.left(cast(T1, self._left))
 
-    def unwrap_or[T2](self: Either[L, Optional[T2]], default: T2) -> T2:
-        if self.is_right(self._right):
-            return self._right if self._right is not None else default
+    def unwrap_or(self, default: R) -> R:
+        """
+        Returns the right value if present, otherwise returns the default.
+
+        Parameters
+        ----------
+        default : `R`
+            The default value to return if this Either is Left.
+
+        Returns
+        -------
+        `R`
+            The right value if present, otherwise the default.
+
+        Example
+        -------
+        >>> Either.right(42).unwrap_or(0)
+        42
+        >>> Either.left("error").unwrap_or(0)
+        0
+        """
+        if self._has_right(self._right):
+            return self._right
         return default
+
+    def and_then[L2, R2](
+        self: Either[L, R],
+        f: Callable[[R], Either[L2, R2]],
+    ) -> Either[L | L2, R2]:
+        """
+        Chains an Either-returning function, similar to Rust's and_then.
+
+        This is the monadic bind operation. If this Either is Right, applies the function
+        to the right value and returns the result. If this Either is Left, returns the Left.
+
+        Parameters
+        ----------
+        f : `Callable[[R], Either[L2, R2]]`
+            A function that takes the right value and returns a new Either.
+
+        Returns
+        -------
+        `Either[L | L2, R2]`
+            The result of applying f if Right, otherwise the original Left.
+
+        Example
+        -------
+        >>> def parse_int(s: str) -> Either[str, int]:
+        ...     try:
+        ...         return Either.right(int(s))
+        ...     except ValueError:
+        ...         return Either.left("not a number")
+        >>> Either.right("42").and_then(parse_int)
+        >>> Either(_left=None, _right=42)
+        """
+        if self._has_right(self._right):
+            # Cast is safe: L2 is a subset of L | L2
+            return cast(Either[L | L2, R2], f(self._right))
+        # Cast is safe: L is a subset of L | L2
+        return cast(Either[L | L2, R2], Either.left(cast(L, self._left)))
 
     def zip[B](self: "Either[L, R]", other: "Either[L, B]") -> "Either[L, tuple[R, B]]":
         """
@@ -715,10 +853,10 @@ class Either(Generic[L, R]):
             An Either containing a tuple of right values if both are Right, otherwise the first encountered Left.
         """
         return Either(
-            _left=self._left if self.is_left(self._left) else other._left,
+            _left=self._left if self._has_left(self._left) else other._left,
             _right=(
                 (self._right, other._right)
-                if self.is_right(self._right) and other.is_right(other._right)
+                if self._has_right(self._right) and other._has_right(other._right)
                 else None
             ),
         )
@@ -743,7 +881,7 @@ class Either(Generic[L, R]):
             the write operation.
 
         """
-        if self.is_right(self._right):  #  type: ignore
+        if self._has_right(self._right):  #  type: ignore
             try:
                 with open(fp, "w") as f:
                     f.write(self._right.model_dump_json(indent=4))  # type: ignore
@@ -780,7 +918,7 @@ class Either(Generic[L, R]):
         >>> e1.then(e2)
         >>> Either(_left=None, _right=10)
         """
-        if self.is_right(self._right):
+        if self._has_right(self._right):
             return mnd
         return Either.left(cast(T1, self._left))
 
@@ -804,7 +942,7 @@ class Either(Generic[L, R]):
             The result of applying the left function if the Either is Left,
             or the right function if the Either is Right.
         """
-        if self.is_right(self._right):
+        if self._has_right(self._right):
             return right(self._right)
         return left(cast(L, self._left))
 
@@ -887,7 +1025,8 @@ def throws[T, *E1s, *E2s, **Ps](
             *args: Ps.args, **kwargs: Ps.kwargs
         ) -> Either[Union[*E1s, *E2s], T]:
             try:
-                return fn(*args, **kwargs)
+                # Cast is safe: E1s is a subset of E1s | E2s
+                return cast(Either[Union[*E1s, *E2s], T], fn(*args, **kwargs))
             except exception_types as e:  # type: ignore
                 # Cast is safe because its just generalizing (E1, E2, ..., En) as e: Union[E1, E2, ..., En]
                 return Either.left(cast(Union[*E1s, *E2s], e))

@@ -1,4 +1,4 @@
-# effect-py
+# result-py
 
 A functional programming library for Python that brings **type-safe error handling** through the `Either` monad pattern. Stop using exceptions for control flow—make your errors explicit, composable, and type-checked!
 
@@ -7,19 +7,19 @@ A functional programming library for Python that brings **type-safe error handli
 - **Type-Safe Error Handling**: Errors are values, not exceptions. Your type checker knows exactly what can go wrong.
 - **Railway-Oriented Programming**: Chain operations elegantly with `.pipe()` and handle both success and failure paths.
 - **Rich Collection Operations**: `map`, `filter`, `reduce`, `flat_map`, and more—all within the Either context.
-- **Modern Python**: Built for Python 3.13+ with full type annotations and generics.
+- **Modern Python**: Built for Python 3.14+ with full type annotations and generics.
 - **Functional Composition**: Build complex pipelines from simple, testable functions.
 
 ## Installation
 
 ```bash
-pip install fn-effect-py
+pip install fn-result-py
 ```
 
 Or with Poetry:
 
 ```bash
-poetry add fn-effect-py
+poetry add fn-result-py
 ```
 
 ## Quick Start
@@ -27,7 +27,7 @@ poetry add fn-effect-py
 ### Basic Usage
 
 ```python
-from effect_py import Either
+from result_py import Either
 
 # Create success and failure values
 success = Either.right(42)       # Right = success
@@ -45,7 +45,7 @@ print(result)  # Either(_left=None, _right=25)
 ### Error Handling Made Explicit
 
 ```python
-from effect_py import Either
+from result_py import Either
 
 def divide(a: float, b: float) -> Either[str, float]:
     if b == 0:
@@ -75,7 +75,7 @@ print(message)  # "Result: 2.83"
 ### Working with Collections
 
 ```python
-from effect_py import Either
+from result_py import Either
 
 # Transform collections within Either context
 result = (
@@ -100,7 +100,7 @@ print(result)  # Either(_left=None, _right=[6, 8, 10])
 Use `wrap_external` to safely wrap functions that might throw exceptions:
 
 ```python
-from effect_py import wrap_external
+from result_py import wrap_external
 import json
 
 # Wrap a function that might raise exceptions
@@ -118,7 +118,7 @@ print(result)  # Either(_left=JSONDecodeError(...), _right=None)
 Declare which exceptions your function might throw, and have them automatically converted to `Either.left`:
 
 ```python
-from effect_py import Either, throws
+from result_py import Either, throws
 
 @throws(ValueError, KeyError)
 def risky_operation(data: dict, key: str) -> Either[ValueError | KeyError, int]:
@@ -150,7 +150,9 @@ print(result)  # Either(_left=KeyError('x'), _right=None)
 | Method | Description |
 |--------|-------------|
 | `.pipe(f)` | Apply function to right value, supports both `T -> U` and `T -> Either[E, U]` |
+| `.and_then(f)` | Monadic bind: chain `T -> Either[E2, U]` functions (alias-like to pipe for Either-returning fns) |
 | `.map(f)` | Apply function to each item in an iterable |
+| `.map_left(f)` | Transform the left (error) value |
 | `.filter(f)` | Filter items in an iterable |
 | `.filter_map(f)` | Filter and map in one step (None values filtered out) |
 | `.flat_map(f)` | Map and flatten nested iterables |
@@ -161,8 +163,8 @@ print(result)  # Either(_left=KeyError('x'), _right=None)
 | Method | Description |
 |--------|-------------|
 | `.n_pipe(f)` | Unpack tuple and apply multi-argument function |
-| `.n_map(f)` | Map with tuple unpacking |
-| `.n_filter_map(f)` | Filter-map with tuple unpacking |
+| `.n_map(f)` | Map with tuple unpacking (lazy generator) |
+| `.n_filter_map(f)` | Filter-map with tuple unpacking (lazy generator) |
 
 ### Aggregations
 
@@ -180,8 +182,16 @@ print(result)  # Either(_left=KeyError('x'), _right=None)
 |--------|-------------|
 | `.zip(other)` | Combine two Eithers into tuple |
 | `.then(other)` | Chain to next Either if current is Right |
+| `.or_else(f)` | Recover from error with `E -> Either[E2, T]` function |
 | `.match(left, right)` | Pattern match on Left/Right |
 | `.unwrap_or(default)` | Get right value or default |
+
+### Properties
+
+| Property | Description |
+|----------|-------------|
+| `.is_right` | `True` if this is a Right value |
+| `.is_left` | `True` if this is a Left value |
 
 ### Utilities
 

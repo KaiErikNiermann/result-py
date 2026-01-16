@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "effect_py"
+project = "result_py"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
@@ -22,7 +22,7 @@ extensions = [
     "sphinx_autodoc_typehints",   # better typing rendering
 ]
 
-project = 'effect-py'
+project = 'result-py'
 copyright = '2025, Kai Erik Niermann'
 author = 'Kai Erik Niermann'
 
