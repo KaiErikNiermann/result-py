@@ -1,6 +1,6 @@
 # result-py
 
-A functional programming library for Python that brings **type-safe error handling** through the `Either` monad pattern. Stop using exceptions for control flow—make your errors explicit, composable, and type-checked!
+A functional programming library for Python.
 
 ## Features
 
