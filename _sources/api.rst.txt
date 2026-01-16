@@ -14,7 +14,7 @@ Creating Either Values
 
 .. code-block:: python
 
-   from effect_py import Either
+   from result_py import Either
 
    # Success values
    success = Either.right(42)
@@ -24,13 +24,13 @@ Creating Either Values
    failure = Either.left("Error message")
    failure = Either.failure("Error message")  # Alias
 
-.. automodule:: effect_py.either
+.. automodule:: result_py.either
    :members:
    :undoc-members:
    :show-inheritance:
    :member-order: bysource
 
-.. autoclass:: effect_py.either.Either
+.. autoclass:: result_py.either.Either
    :members:
    :undoc-members:
    :inherited-members:
@@ -47,7 +47,7 @@ Wraps a value in ``Either.right``:
 
 .. code-block:: python
 
-   from effect_py import as_either
+   from result_py import as_either
 
    result = as_either(42)  # Either(_left=None, _right=42)
 
@@ -58,7 +58,7 @@ Wraps a function that might throw exceptions:
 
 .. code-block:: python
 
-   from effect_py import wrap_external
+   from result_py import wrap_external
    import json
 
    safe_loads = wrap_external(json.loads, json.JSONDecodeError)
@@ -73,7 +73,7 @@ Decorator to catch specified exceptions and convert them to ``Either.left``:
 
 .. code-block:: python
 
-   from effect_py import Either, throws
+   from result_py import Either, throws
 
    @throws(ValueError, KeyError)
    def process(data: dict) -> Either[ValueError | KeyError, int]:
@@ -85,7 +85,7 @@ Decorator to catch specified exceptions and convert them to ``Either.left``:
 Contracts Module
 ----------------
 
-.. automodule:: effect_py.contracts
+.. automodule:: result_py.contracts
    :members:
    :undoc-members:
    :show-inheritance:

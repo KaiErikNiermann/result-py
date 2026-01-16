@@ -5,9 +5,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>effect_py.contracts &mdash; effect-py  documentation</title>
+  <title>result_py.contracts &mdash; result-py  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
@@ -29,7 +29,7 @@
           
           
           <a href="../../index.html" class="icon icon-home">
-            effect-py
+            result-py
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -50,7 +50,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">effect-py</a>
+          <a href="../../index.html">result-py</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -59,7 +59,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">effect_py.contracts</li>
+      <li class="breadcrumb-item active">result_py.contracts</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -68,7 +68,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for effect_py.contracts</h1><div class="highlight"><pre>
+  <h1>Source code for result_py.contracts</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">runtime_checkable</span>
 
 <span class="nb">type</span> <span class="n">Identity</span><span class="p">[</span><span class="n">X</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span>
@@ -79,18 +79,18 @@
 
 
 <div class="viewcode-block" id="HasItems">
-<a class="viewcode-back" href="../../api.html#effect_py.contracts.HasItems">[docs]</a>
+<a class="viewcode-back" href="../../api.html#result_py.contracts.HasItems">[docs]</a>
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">HasItems</span><span class="p">[</span><span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">](</span><span class="n">Protocol</span><span class="p">):</span>
 <div class="viewcode-block" id="HasItems.items">
-<a class="viewcode-back" href="../../api.html#effect_py.contracts.HasItems.items">[docs]</a>
+<a class="viewcode-back" href="../../api.html#result_py.contracts.HasItems.items">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">]]:</span> <span class="o">...</span></div>
 </div>
 
 
 
 <div class="viewcode-block" id="HasRootMapping">
-<a class="viewcode-back" href="../../api.html#effect_py.contracts.HasRootMapping">[docs]</a>
+<a class="viewcode-back" href="../../api.html#result_py.contracts.HasRootMapping">[docs]</a>
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">HasRootMapping</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">T_co</span><span class="p">]):</span>
     <span class="nd">@property</span>
@@ -99,10 +99,10 @@
 
 
 <div class="viewcode-block" id="HasAdd">
-<a class="viewcode-back" href="../../api.html#effect_py.contracts.HasAdd">[docs]</a>
+<a class="viewcode-back" href="../../api.html#result_py.contracts.HasAdd">[docs]</a>
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">HasAdd</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">T_add</span><span class="p">]):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">T_add</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">T_add</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_add</span><span class="p">:</span> <span class="o">...</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">T_add</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T_add</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_add</span><span class="p">:</span> <span class="o">...</span></div>
 
 </pre></div>
 

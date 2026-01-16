@@ -1,9 +1,9 @@
-.. effect-py documentation master file, created by
+.. result-py documentation master file, created by
    sphinx-quickstart on Sat Nov  8 18:39:56 2025.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-effect-py
+result-py
 =========
 
 A functional programming library for Python that brings **type-safe error handling** through the ``Either`` monad pattern.
@@ -15,7 +15,7 @@ A functional programming library for Python that brings **type-safe error handli
    getting-started
    api
 
-Why effect-py?
+Why result-py?
 --------------
 
 Traditional Python error handling uses exceptions, which are:
@@ -35,7 +35,7 @@ Quick Example
 
 .. code-block:: python
 
-   from effect_py import Either
+   from result_py import Either
 
    def divide(a: float, b: float) -> Either[str, float]:
        if b == 0:
@@ -58,13 +58,13 @@ Installation
 
 .. code-block:: bash
 
-   pip install fn-effect-py
+   pip install fn-result-py
 
 Or with Poetry:
 
 .. code-block:: bash
 
-   poetry add fn-effect-py
+   poetry add fn-result-py
 
 Indices and tables
 ==================

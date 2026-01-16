@@ -6,9 +6,9 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>effect-py &mdash; effect-py  documentation</title>
+  <title>result-py &mdash; result-py  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -31,7 +31,7 @@
           
           
           <a href="#" class="icon icon-home">
-            effect-py
+            result-py
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -52,7 +52,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">effect-py</a>
+          <a href="#">result-py</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -60,7 +60,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">effect-py</li>
+      <li class="breadcrumb-item active">result-py</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,8 +70,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="effect-py">
-<h1>effect-py<a class="headerlink" href="#effect-py" title="Link to this heading"></a></h1>
+  <section id="result-py">
+<h1>result-py<a class="headerlink" href="#result-py" title="Link to this heading"></a></h1>
 <p>A functional programming library for Python that brings <strong>type-safe error handling</strong> through the <code class="docutils literal notranslate"><span class="pre">Either</span></code> monad pattern.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
@@ -79,13 +79,13 @@
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#either-class">Either Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#helper-functions">Helper Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-effect_py.contracts">Contracts Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-result_py.contracts">Contracts Module</a></li>
 </ul>
 </li>
 </ul>
 </div>
-<section id="why-effect-py">
-<h2>Why effect-py?<a class="headerlink" href="#why-effect-py" title="Link to this heading"></a></h2>
+<section id="why-result-py">
+<h2>Why result-py?<a class="headerlink" href="#why-result-py" title="Link to this heading"></a></h2>
 <p>Traditional Python error handling uses exceptions, which are:</p>
 <ul class="simple">
 <li><p><strong>Invisible</strong>: Nothing in the type signature tells you a function can fail</p></li>
@@ -101,7 +101,7 @@
 </section>
 <section id="quick-example">
 <h2>Quick Example<a class="headerlink" href="#quick-example" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">effect_py</span><span class="w"> </span><span class="kn">import</span> <span class="n">Either</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">result_py</span><span class="w"> </span><span class="kn">import</span> <span class="n">Either</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">divide</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Either</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
     <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -123,11 +123,11 @@
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>fn-effect-py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>fn-result-py
 </pre></div>
 </div>
 <p>Or with Poetry:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>add<span class="w"> </span>fn-effect-py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>add<span class="w"> </span>fn-result-py
 </pre></div>
 </div>
 </section>
