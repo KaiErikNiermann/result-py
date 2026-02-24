@@ -1,26 +1,24 @@
 from __future__ import annotations
+
+import json
+import operator
+import warnings
+from collections import Counter
+from collections.abc import Callable, Hashable, Iterable, Mapping
 from dataclasses import dataclass
+from functools import wraps
 from typing import (
     Any,
-    Callable,
-    Hashable,
-    TypeVar,
     Generic,
-    Iterable,
-    Mapping,
-    Optional,
     TypeIs,
+    TypeVar,
     Union,
     cast,
     overload,
 )
-import json
-from collections import Counter
-import operator
-from functools import wraps
+
 import tqdm
 from pydantic import BaseModel
-import warnings
 
 from result_py.contracts import HasAdd, HasRootMapping, Identity
 
@@ -55,8 +53,8 @@ class Either(Generic[L, R]):
     This is a frozen (immutable) dataclass for safety.
     """
 
-    _left: Optional[L] = None
-    _right: Optional[R] = None
+    _left: L | None = None
+    _right: R | None = None
 
     @staticmethod
     def left[L2](l: L2) -> Either[L2, Any]:
@@ -77,7 +75,7 @@ class Either(Generic[L, R]):
         /,
         *,
         track: bool,
-        f: Optional[Callable[..., Any]] = None,
+        f: Callable[..., Any] | None = None,
         tqdm_kwargs: dict[str, Any],
     ) -> Iterable[T] | tqdm.tqdm[T]:
         if not track:
@@ -101,11 +99,11 @@ class Either(Generic[L, R]):
         """Returns True if this Either contains a Left value."""
         return self._left is not None
 
-    def _has_right(self, value: Optional[R]) -> TypeIs[R]:
+    def _has_right(self, value: R | None) -> TypeIs[R]:
         """Type guard helper for narrowing the right value."""
         return value is not None
 
-    def _has_left(self, value: Optional[L]) -> TypeIs[L]:
+    def _has_left(self, value: L | None) -> TypeIs[L]:
         """Type guard helper for narrowing the left value."""
         return value is not None
 
@@ -196,9 +194,7 @@ class Either(Generic[L, R]):
     ) -> Either[Union[*Ls, *Es], T]: ...
 
     @overload
-    def pipe[*Ls, T](
-        self: Either[Union[*Ls], R], f: Callable[[R], T]
-    ) -> Either[Union[*Ls], T]: ...
+    def pipe[*Ls, T](self: Either[Union[*Ls], R], f: Callable[[R], T]) -> Either[Union[*Ls], T]: ...
 
     def pipe(self, f: Callable[[R], Any]) -> Either[Any, Any]:
         if self._has_right(self._right):
@@ -342,7 +338,7 @@ class Either(Generic[L, R]):
 
     def to_root_items[T](
         self: Either[L, HasRootMapping[T]],
-    ) -> "Either[L, Iterable[tuple[str, T]]]":
+    ) -> Either[L, Iterable[tuple[str, T]]]:
         """
         Converts the Either containing a HasRootMapping to an Iterable of its items.
 
@@ -396,9 +392,7 @@ class Either(Generic[L, R]):
         **tqdm_kwargs: dict[str, Any],
     ) -> Either[L, Iterable[T2]]:
         def _map(it: Iterable[T1]) -> Iterable[T2]:
-            return (
-                f(item) for item in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs)
-            )
+            return (f(item) for item in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs))
 
         return self._apply_right(_map)
 
@@ -441,7 +435,7 @@ class Either(Generic[L, R]):
 
     def filter_map[T1, T2](
         self: Either[L, Iterable[T1]],
-        f: Callable[[T1], Optional[T2]],
+        f: Callable[[T1], T2 | None],
         track: bool = False,
         **tqdm_kwargs: dict[str, Any],
     ) -> Either[L, Iterable[T2]]:
@@ -668,12 +662,12 @@ class Either(Generic[L, R]):
             or the left value if present.
         """
         if self._has_right(self._right):
-            return Either.right((item for sublist in self._right for item in sublist))
+            return Either.right(item for sublist in self._right for item in sublist)
         return Either.left(cast(L, self._left))
 
     def n_filter_map[*T1, T2](
         self: Either[L, Iterable[tuple[*T1]]],
-        f: Callable[[*T1], Optional[T2]],
+        f: Callable[[*T1], T2 | None],
         track: bool = False,
         **tqdm_kwargs: dict[str, Any],
     ) -> Either[L, Iterable[T2]]:
@@ -849,7 +843,7 @@ class Either(Generic[L, R]):
         # Cast is safe: L is a subset of L | L2
         return cast(Either[L | L2, R2], Either.left(cast(L, self._left)))
 
-    def zip[B](self: "Either[L, R]", other: "Either[L, B]") -> "Either[L, tuple[R, B]]":
+    def zip[B](self: Either[L, R], other: Either[L, B]) -> Either[L, tuple[R, B]]:
         """
         Combines two Either instances into a single Either containing a tuple of their right values if present.
 
@@ -997,9 +991,7 @@ def curry[S, T, *Ts, R](
 
 def throws[T, *E1s, *E2s, **Ps](
     *exception_types: *E2s,
-) -> Callable[
-    [Callable[Ps, Either[Union[*E1s], T]]], Callable[Ps, Either[Union[*E1s, *E2s], T]]
-]:
+) -> Callable[[Callable[Ps, Either[Union[*E1s], T]]], Callable[Ps, Either[Union[*E1s, *E2s], T]]]:
     """
     Decorator that wraps a function to catch specified exceptions and return them as Either.Left.
 
@@ -1031,9 +1023,7 @@ def throws[T, *E1s, *E2s, **Ps](
         fn: Callable[Ps, Either[Union[*E1s], T]],
     ) -> Callable[Ps, Either[Union[*E1s, *E2s], T]]:
         @wraps(fn)
-        def wrapper(
-            *args: Ps.args, **kwargs: Ps.kwargs
-        ) -> Either[Union[*E1s, *E2s], T]:
+        def wrapper(*args: Ps.args, **kwargs: Ps.kwargs) -> Either[Union[*E1s, *E2s], T]:
             try:
                 # Cast is safe: E1s is a subset of E1s | E2s
                 return cast(Either[Union[*E1s, *E2s], T], fn(*args, **kwargs))

@@ -27,6 +27,8 @@ tqdm = ">=4.67.1,<5.0.0"
 pytest = ">=8.0.0"
 pytest-cov = ">=4.0.0"
 pytest-asyncio = ">=0.23.0"
+radon = "^6.0.1"
+ruff = "^0.15.2"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -50,3 +52,21 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@overload",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = [
+    "E741",   # ambiguous variable name (pre-existing: `l` in Either.left)
+    "E501",   # line too long — violations are in docstrings/comments only
+    "UP046",  # Generic[L,R] class syntax — requires full PEP 695 refactor
+]
+
+[tool.radon]
+cc_min = "B"        # report B+ (complexity 6+) in summaries
+show_complexity = true
+average = true
+exclude = "tests/*,docs/*"

@@ -1,4 +1,5 @@
-from typing import Iterable, Mapping, Protocol, TypeVar, runtime_checkable
+from collections.abc import Iterable, Mapping
+from typing import Protocol, TypeVar, runtime_checkable
 
 type Identity[X] = X
 
