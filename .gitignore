@@ -4,6 +4,9 @@ result_py/__pycache__/
 
 # Sphinx documentation build files
 docs/source/_build/
+.ruff_cache/
 docs/build/
 
 dist/
+.pytest_cache/
+.coverage 

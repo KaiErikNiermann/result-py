@@ -1,7 +1,8 @@
 """Integration tests based on examples from the examples directory."""
 
-import pytest
 import asyncio
+
+import pytest
 from result_py.either import Either
 
 
@@ -11,9 +12,7 @@ class TestApplyDiscountExample:
     def test_apply_discount_success(self):
         """Test applying a valid discount."""
 
-        def apply_discount(
-            total: float, discount_rate: float
-        ) -> Either[ValueError, float]:
+        def apply_discount(total: float, discount_rate: float) -> Either[ValueError, float]:
             if discount_rate == 0:
                 return Either.left(ValueError("Discount rate cannot be zero."))
             return Either.right(total * (1 - discount_rate))
@@ -24,9 +23,7 @@ class TestApplyDiscountExample:
     def test_apply_discount_zero_rate(self):
         """Test applying a zero discount rate."""
 
-        def apply_discount(
-            total: float, discount_rate: float
-        ) -> Either[ValueError, float]:
+        def apply_discount(total: float, discount_rate: float) -> Either[ValueError, float]:
             if discount_rate == 0:
                 return Either.left(ValueError("Discount rate cannot be zero."))
             return Either.right(total * (1 - discount_rate))
@@ -39,9 +36,7 @@ class TestApplyDiscountExample:
     async def test_async_discount_pipeline(self):
         """Test async pipeline with discount."""
 
-        def apply_discount(
-            total: float, discount_rate: float
-        ) -> Either[ValueError, float]:
+        def apply_discount(total: float, discount_rate: float) -> Either[ValueError, float]:
             if discount_rate == 0:
                 return Either.left(ValueError("Discount rate cannot be zero."))
             return Either.right(total * (1 - discount_rate))
@@ -100,9 +95,7 @@ class TestSimpleChainingExample:
         increment = lambda x: x + 1
         double = lambda x: x * 2
 
-        result: Either[str, int] = (
-            Either.left("Initial error").pipe(increment).pipe(double)
-        )
+        result: Either[str, int] = Either.left("Initial error").pipe(increment).pipe(double)
 
         assert result._left == "Initial error"
 
@@ -174,9 +167,7 @@ class TestReadmeExamples:
     def test_filter_map_operations(self):
         """Test filter_map from README."""
         result = (
-            Either.right([1, 2, 3, 4, 5])
-            .filter_map(lambda x: x * 2 if x > 2 else None)
-            .to_list()
+            Either.right([1, 2, 3, 4, 5]).filter_map(lambda x: x * 2 if x > 2 else None).to_list()
         )
         assert list(result._right) == [6, 8, 10]
 
@@ -205,9 +196,7 @@ class TestEdgeCases:
 
     def test_single_element_iterable(self):
         """Test operations on single-element iterables."""
-        result = (
-            Either.right([42]).filter(lambda x: x > 0).map(lambda x: x * 2).to_list()
-        )
+        result = Either.right([42]).filter(lambda x: x > 0).map(lambda x: x * 2).to_list()
         assert result._right == [84]
 
     def test_none_as_right_value(self):
@@ -226,19 +215,11 @@ class TestEdgeCases:
         def validate_even(x: int) -> Either[str, int]:
             return Either.right(x) if x % 2 == 0 else Either.left("Not even")
 
-        result = (
-            Either.right(4)
-            .pipe(validate_positive)
-            .pipe(validate_even)
-            .pipe(lambda x: x * 2)
-        )
+        result = Either.right(4).pipe(validate_positive).pipe(validate_even).pipe(lambda x: x * 2)
         assert result._right == 8
 
         result_fail = (
-            Either.right(3)
-            .pipe(validate_positive)
-            .pipe(validate_even)
-            .pipe(lambda x: x * 2)
+            Either.right(3).pipe(validate_positive).pipe(validate_even).pipe(lambda x: x * 2)
         )
         assert result_fail._left == "Not even"
 

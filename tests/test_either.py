@@ -1,24 +1,21 @@
 """Comprehensive tests for the Either monad and related utilities."""
 
-import pytest
 import json
-import tempfile
 import os
+import tempfile
 import warnings
-from typing import Optional
-from collections import Counter
-from pydantic import BaseModel
 
+from pydantic import BaseModel
 from result_py.either import (
     Either,
+    ExternalWrapWarning,
+    WriteJsonWarning,
     as_either,
     as_failure,
     curry,
+    ident,
     throws,
     wrap_external,
-    ident,
-    ExternalWrapWarning,
-    WriteJsonWarning,
 )
 
 
@@ -189,9 +186,7 @@ class TestEitherFilterMap:
 
     def test_filter_map_applies_and_filters(self):
         """filter_map should apply function and filter out None results."""
-        e = Either.right([1, 2, 3, 4, 5]).filter_map(
-            lambda x: x * 2 if x % 2 == 0 else None
-        )
+        e = Either.right([1, 2, 3, 4, 5]).filter_map(lambda x: x * 2 if x % 2 == 0 else None)
         assert list(e._right) == [4, 8]
 
     def test_filter_map_short_circuits_on_left(self):
@@ -221,9 +216,11 @@ class TestEitherNFilterMap:
 
     def test_n_filter_map_unpacks_and_filters(self):
         """n_filter_map should unpack tuples, apply function, and filter None."""
-        e = Either.right([(1, 2), (3, 4), (5, 6)]).n_filter_map(
-            lambda x, y: x + y if (x + y) > 5 else None
-        ).to_list()
+        e = (
+            Either.right([(1, 2), (3, 4), (5, 6)])
+            .n_filter_map(lambda x, y: x + y if (x + y) > 5 else None)
+            .to_list()
+        )
         assert e._right == [7, 11]
 
 
@@ -441,6 +438,7 @@ class TestEitherAndThen:
 
     def test_and_then_chains_success(self):
         """and_then should chain operations on Right values."""
+
         def parse_int(s: str) -> Either[str, int]:
             try:
                 return Either.right(int(s))
@@ -452,6 +450,7 @@ class TestEitherAndThen:
 
     def test_and_then_short_circuits_on_initial_left(self):
         """and_then should preserve Left and not call function."""
+
         def parse_int(s: str) -> Either[str, int]:
             return Either.right(int(s))
 
@@ -461,6 +460,7 @@ class TestEitherAndThen:
 
     def test_and_then_propagates_function_left(self):
         """and_then should propagate Left from the chained function."""
+
         def parse_int(s: str) -> Either[str, int]:
             return Either.left("parsing failed")
 
@@ -469,6 +469,7 @@ class TestEitherAndThen:
 
     def test_and_then_with_different_error_types(self):
         """and_then should handle different error types in union."""
+
         def validate(x: int) -> Either[ValueError, int]:
             if x < 0:
                 return Either.left(ValueError("negative"))
@@ -560,7 +561,7 @@ class TestEitherUnwrapOr:
 
     def test_unwrap_or_returns_default_on_none_right(self):
         """unwrap_or should return default when right value is None."""
-        e: Either[str, Optional[int]] = Either.right(None)
+        e: Either[str, int | None] = Either.right(None)
         assert e.unwrap_or(0) == 0
 
 
@@ -599,7 +600,7 @@ class TestEitherWriteJsonOut:
             result = e.write_json_out(filepath)
             assert result._right == model
 
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 data = json.load(f)
             assert data == {"name": "test", "value": 42}
         finally:

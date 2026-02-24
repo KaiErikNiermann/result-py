@@ -56,12 +56,14 @@ exclude_lines = [
 [tool.ruff]
 line-length = 100
 target-version = "py314"
+src = ["result_py", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]
 ignore = [
-    "E741",   # ambiguous variable name (pre-existing: `l` in Either.left)
-    "E501",   # line too long — violations are in docstrings/comments only
+    "E741",   # ambiguous variable name (`l` in Either.left)
+    "E501",   # line too long — docstrings/comments only
+    "E731",   # lambda assignment — common in tests for inline helpers
     "UP046",  # Generic[L,R] class syntax — requires full PEP 695 refactor
 ]
 

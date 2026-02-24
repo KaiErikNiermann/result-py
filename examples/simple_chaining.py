@@ -7,7 +7,7 @@ subtract: Callable[[int], int] = lambda x: x - 3
 
 # fmt: off
 result = (
-    Either.right(5)  
+    Either.right(5)
     .pipe(increment) # 6 
     .pipe(double)    # 12 
     .pipe(subtract)  # 9 

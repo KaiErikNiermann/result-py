@@ -1,8 +1,8 @@
 """Comprehensive tests for the contracts module."""
 
-import pytest
-from typing import Mapping, Iterable
-from result_py.contracts import HasItems, HasRootMapping, HasAdd, Identity
+from collections.abc import Iterable, Mapping
+
+from result_py.contracts import HasAdd, HasItems, HasRootMapping, Identity
 
 
 class TestIdentityType:
@@ -97,7 +97,7 @@ class TestHasAddProtocol:
             def __init__(self, value: int):
                 self.value = value
 
-            def __add__(self, other: "Addable") -> "Addable":
+            def __add__(self, other: Addable) -> Addable:
                 return Addable(self.value + other.value)
 
             def __eq__(self, other: object) -> bool:
