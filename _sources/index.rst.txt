@@ -1,8 +1,3 @@
-.. result-py documentation master file, created by
-   sphinx-quickstart on Sat Nov  8 18:39:56 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 result-py
 =========
 
@@ -12,7 +7,9 @@ A functional programming library for Python that brings **type-safe error handli
    :maxdepth: 2
    :caption: Contents:
 
-   getting-started
+   installation
+   quickstart
+   guide
    api
 
 Why result-py?
@@ -52,19 +49,6 @@ Quick Example
        )
    )
    print(result)  # "Result: 5.0"
-
-Installation
-------------
-
-.. code-block:: bash
-
-   pip install fn-result-py
-
-Or with Poetry:
-
-.. code-block:: bash
-
-   poetry add fn-result-py
 
 Indices and tables
 ==================

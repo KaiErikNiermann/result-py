@@ -20,20 +20,13 @@ Creating Either Values
    success = Either.right(42)
    success = Either.success(42)  # Alias
 
-   # Failure values  
+   # Failure values
    failure = Either.left("Error message")
    failure = Either.failure("Error message")  # Alias
-
-.. automodule:: result_py.either
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :member-order: bysource
 
 .. autoclass:: result_py.either.Either
    :members:
    :undoc-members:
-   :inherited-members:
    :show-inheritance:
    :member-order: bysource
 
@@ -62,7 +55,7 @@ Wraps a function that might throw exceptions:
    import json
 
    safe_loads = wrap_external(json.loads, json.JSONDecodeError)
-   
+
    result = safe_loads('{"key": "value"}')  # Right({'key': 'value'})
    result = safe_loads('invalid')           # Left(JSONDecodeError(...))
 
