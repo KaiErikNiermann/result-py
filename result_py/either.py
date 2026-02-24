@@ -17,7 +17,7 @@ from typing import (
 import json
 from collections import Counter
 import operator
-from functools import reduce, wraps
+from functools import wraps
 import tqdm
 from pydantic import BaseModel
 import warnings
@@ -47,11 +47,11 @@ class WriteJsonWarning(Warning):
 class Either(Generic[L, R]):
     """
     A type-safe Either monad for functional error handling.
-    
+
     Either represents a value that can be one of two types:
     - Left (L): Typically used to represent an error or failure case
     - Right (R): Typically used to represent a success case
-    
+
     This is a frozen (immutable) dataclass for safety.
     """
 
@@ -100,7 +100,7 @@ class Either(Generic[L, R]):
     def is_left(self) -> bool:
         """Returns True if this Either contains a Left value."""
         return self._left is not None
-    
+
     def _has_right(self, value: Optional[R]) -> TypeIs[R]:
         """Type guard helper for narrowing the right value."""
         return value is not None
@@ -263,6 +263,7 @@ class Either(Generic[L, R]):
                 else:
                     falsy.append(item)
             return (truthy, falsy)
+
         return self._apply_right(_partition)
 
     def n_partition[*T1, *T2](
@@ -289,7 +290,9 @@ class Either(Generic[L, R]):
             If the Either is left, it returns the left value.
         """
 
-        def _partition(it: Iterable[Union[*T1, *T2]]) -> tuple[list[Union[*T1]], list[Union[*T2]]]:
+        def _partition(
+            it: Iterable[Union[*T1, *T2]],
+        ) -> tuple[list[Union[*T1]], list[Union[*T2]]]:
             first: list[Union[*T1]] = []
             second: list[Union[*T2]] = []
             for item in it:
@@ -377,12 +380,14 @@ class Either(Generic[L, R]):
         track: bool = False,
         **tqdm_kwargs: dict[str, Any],
     ) -> Either[L, Iterable[Any]]:
-        return self._apply_right(
-            lambda it: filter(
-                lambda item: self._call(f, item),
-                self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs),
+        def _filter(it: Iterable[Any]) -> Iterable[Any]:
+            return (
+                item
+                for item in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs)
+                if self._call(f, item)
             )
-        )
+
+        return self._apply_right(_filter)
 
     def map[T1, T2](
         self: Either[L, Iterable[T1]],
@@ -390,12 +395,12 @@ class Either(Generic[L, R]):
         track: bool = False,
         **tqdm_kwargs: dict[str, Any],
     ) -> Either[L, Iterable[T2]]:
-        return self._apply_right(
-            lambda it: map(
-                f,
-                self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs),
+        def _map(it: Iterable[T1]) -> Iterable[T2]:
+            return (
+                f(item) for item in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs)
             )
-        )
+
+        return self._apply_right(_map)
 
     def to_items[T1, T2](
         self: Either[L, Mapping[T1, T2]],
@@ -523,13 +528,14 @@ class Either(Generic[L, R]):
         >>> e.n_map_reduce(lambda x, y: x + y, 0)
         >>> Either(_left=None, _right=21)
         """
-        return self._apply_right(
-            lambda it: reduce(
-                lambda acc, x: add(acc, f(*x)),
-                self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs),
-                initial,
-            )
-        )
+
+        def _n_map_reduce(it: Iterable[tuple[*T1]]) -> HasAdd[T2]:
+            result: HasAdd[T2] = initial
+            for x in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs):
+                result = add(result, f(*x))
+            return result
+
+        return self._apply_right(_n_map_reduce)
 
     def iter_to_[T1, T2](self: Either[L, Iterable[T1]], t: type[T2]) -> Either[L, T2]:
         """
@@ -578,13 +584,13 @@ class Either(Generic[L, R]):
         track: bool = False,
         **tqdm_kwargs: dict[str, Any],
     ) -> Either[L, HasAdd[T2]]:
-        return self._apply_right(
-            lambda it: reduce(
-                lambda acc, x: add(acc, f(x)),
-                self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs),
-                initial,
-            )
-        )
+        def _map_reduce(it: Iterable[T1]) -> HasAdd[T2]:
+            result: HasAdd[T2] = initial
+            for x in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs):
+                result = add(result, f(x))
+            return result
+
+        return self._apply_right(_map_reduce)
 
     def reduce[T1, T2](
         self: Either[L, Iterable[T1]],
@@ -620,13 +626,14 @@ class Either(Generic[L, R]):
         >>> e.reduce(lambda acc, x: acc + x, 0)
         >>> Either(_left=None, _right=10)
         """
-        return self._apply_right(
-            lambda it: reduce(
-                f,
-                self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs),
-                initial,
-            )
-        )
+
+        def _reduce(it: Iterable[T1]) -> T2:
+            result: T2 = initial
+            for x in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs):
+                result = f(result, x)
+            return result
+
+        return self._apply_right(_reduce)
 
     def to_set[T1](self: Either[L, Iterable[T1]]) -> Either[L, set[T1]]:
         """
@@ -701,10 +708,12 @@ class Either(Generic[L, R]):
         >>> e.n_filter_map(lambda x, y: x + y if (x + y) > 5 else None)
         >>> Either(_left=None, _right=[7, 11])
         """
+
         def _gen(it: Iterable[tuple[*T1]]) -> Iterable[T2]:
             for item in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs):
                 if (_item := f(*item)) is not None:
                     yield _item
+
         return self._apply_right(_gen)
 
     def n_map[*T1, T2](
@@ -739,9 +748,11 @@ class Either(Generic[L, R]):
         >>> e.n_map(lambda x, y: x + y)
         >>> Either(_left=None, _right=[3, 7])
         """
+
         def _gen(it: Iterable[tuple[*T1]]) -> Iterable[T2]:
             for item in self._iter(it, track=track, tqdm_kwargs=tqdm_kwargs):
                 yield f(*item)
+
         return self._apply_right(_gen)
 
     def dict_pipe(
@@ -1019,7 +1030,6 @@ def throws[T, *E1s, *E2s, **Ps](
     def decorator(
         fn: Callable[Ps, Either[Union[*E1s], T]],
     ) -> Callable[Ps, Either[Union[*E1s, *E2s], T]]:
-
         @wraps(fn)
         def wrapper(
             *args: Ps.args, **kwargs: Ps.kwargs
