@@ -9,4 +9,4 @@ docs/build/
 
 dist/
 .pytest_cache/
-.coverage 
+.coverage
